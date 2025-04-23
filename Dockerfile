@@ -1,31 +1,28 @@
-FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
+# ---------- Stage 1: Build with Maven ----------
+FROM maven:3.9.6-eclipse-temurin-21 AS build
+
+# Set working directory inside the container
 WORKDIR /app
+
+# Copy pom.xml and download dependencies first (cache optimization)
 COPY pom.xml .
+RUN mvn dependency:go-offline
+
+# Copy the rest of the project and build
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-FROM eclipse-temurin:21-jdk-alpine
-# Install curl and netcat for the wait script
-RUN apk add --no-cache curl netcat-openbsd
+# ---------- Stage 2: Run with JDK ----------
+FROM eclipse-temurin:21-jdk
 
+# Set working directory
 WORKDIR /app
 
-# Create wait-for-it script
-RUN echo '#!/bin/sh' > /wait-for-it.sh && \
-    echo 'set -e' >> /wait-for-it.sh && \
-    echo 'host="$1"' >> /wait-for-it.sh && \
-    echo 'shift' >> /wait-for-it.sh && \
-    echo 'cmd="$@"' >> /wait-for-it.sh && \
-    echo 'until nc -z -v -w30 $host; do' >> /wait-for-it.sh && \
-    echo '  echo "Waiting for database connection..."' >> /wait-for-it.sh && \
-    echo '  sleep 2' >> /wait-for-it.sh && \
-    echo 'done' >> /wait-for-it.sh && \
-    echo 'echo "Database is up - executing command"' >> /wait-for-it.sh && \
-    echo 'exec $cmd' >> /wait-for-it.sh && \
-    chmod +x /wait-for-it.sh
-
-# Copy the application JAR from the build stage
+# Copy the built JAR from the previous stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Wait for MySQL and start the application
-CMD ["/wait-for-it.sh", "mysqldb:3306", "--", "java", "-jar", "app.jar"]
+# Expose port
+EXPOSE 8081
+
+# Run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]

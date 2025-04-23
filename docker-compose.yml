@@ -1,16 +1,17 @@
-version: '3.8'
-
 services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile.maven
+      dockerfile: Dockerfile
     ports:
       - "8081:8081"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysqldb:3306/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true
-      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_DATASOURCE_DB1_URL=jdbc:mysql://mysqldb:3306/${DB1_NAME}?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_DB1_USERNAME=${DB1_USERNAME}
+      - SPRING_DATASOURCE_DB1_PASSWORD=${DB1_PASSWORD}
+      - SPRING_DATASOURCE_DB2_URL=jdbc:mysql://mysqldb:3306/${DB2_NAME}?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_DB2_USERNAME=${DB2_USERNAME}
+      - SPRING_DATASOURCE_DB2_PASSWORD=${DB2_PASSWORD}
     depends_on:
       mysqldb:
         condition: service_healthy
@@ -23,10 +24,10 @@ services:
     ports:
       - "3307:3306"
     environment:
-      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
-      - MYSQL_DATABASE=${DB_NAME}
-#      - MYSQL_USER=${DB_USERNAME}
-#      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${DB1_PASSWORD}
+      - MYSQL_DATABASE=${DB1_NAME}
+      - MYSQL_ROOT_PASSWORD=${DB2_PASSWORD}
+      - MYSQL_DATABASE=${DB2_NAME}
     volumes:
       - mysql-data:/var/lib/mysql
     networks:
