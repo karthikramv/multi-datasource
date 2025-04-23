@@ -6,19 +6,21 @@ services:
     ports:
       - "8081:8081"
     environment:
-      - SPRING_DATASOURCE_DB1_URL=jdbc:mysql://mysqldb:3306/${DB1_NAME}?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_DB1_URL=jdbc:mysql://db1:3306/${DB1_NAME}?useSSL=false&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_DB1_USERNAME=${DB1_USERNAME}
       - SPRING_DATASOURCE_DB1_PASSWORD=${DB1_PASSWORD}
-      - SPRING_DATASOURCE_DB2_URL=jdbc:mysql://mysqldb:3306/${DB2_NAME}?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_DB2_URL=jdbc:mysql://db2:3306/${DB2_NAME}?useSSL=false&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_DB2_USERNAME=${DB2_USERNAME}
       - SPRING_DATASOURCE_DB2_PASSWORD=${DB2_PASSWORD}
     depends_on:
-      mysqldb:
+      db1:
+        condition: service_healthy
+      db2:
         condition: service_healthy
     networks:
       - spring-mysql-net
 
-  mysqldb:
+  db1:
     image: mysql:8.0
     restart: always
     ports:
@@ -26,10 +28,27 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=${DB1_PASSWORD}
       - MYSQL_DATABASE=${DB1_NAME}
+    volumes:
+      - mysql-data-db1:/var/lib/mysql
+    networks:
+      - spring-mysql-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  db2:
+    image: mysql:8.0
+    restart: always
+    ports:
+      - "3308:3306"
+    environment:
       - MYSQL_ROOT_PASSWORD=${DB2_PASSWORD}
       - MYSQL_DATABASE=${DB2_NAME}
     volumes:
-      - mysql-data:/var/lib/mysql
+      - mysql-data-db2:/var/lib/mysql
     networks:
       - spring-mysql-net
     healthcheck:
@@ -40,7 +59,8 @@ services:
       start_period: 30s
 
 volumes:
-  mysql-data:
+  mysql-data-db1:
+  mysql-data-db2:
 
 networks:
   spring-mysql-net:
