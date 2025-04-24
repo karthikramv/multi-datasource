@@ -1,4 +1,13 @@
-DB_URL=jdbc:mysql://localhost:3306/db1?useSSL=false&allowPublicKeyRetrieval=true
-DB_NAME=db1
-DB_USERNAME=root
-DB_PASSWORD=9908
+#DB1 Database info
+
+DB1_URL=jdbc:mysql://localhost:3306/db1?useSSL=false&allowPublicKeyRetrieval=true
+DB1_NAME=db1
+DB1_USERNAME=root
+DB1_PASSWORD=9908
+
+#DB2 Database info
+
+DB2_URL=jdbc:mysql://localhost:3306/db2?useSSL=false&allowPublicKeyRetrieval=true
+DB2_NAME=db2
+DB2_USERNAME=root
+DB2_PASSWORD=9908
