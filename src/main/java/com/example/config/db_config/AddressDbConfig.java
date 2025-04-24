@@ -1,4 +1,4 @@
-package com.example.config;
+package com.example.config.db_config;
 
 import javax.sql.DataSource;
 
@@ -8,50 +8,54 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import com.example.entity.Student;
+import com.example.entity.Address;
 import com.zaxxer.hikari.HikariDataSource;
+
 
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-		basePackages = "com.example.repository",
-		entityManagerFactoryRef = "entityManagerFactory",
-		transactionManagerRef = "transactionManager"
+		basePackages = "com.example.repository.AddressRepository",
+		entityManagerFactoryRef = "addressEntityManagerFactory",
+		transactionManagerRef = "addressTransactionManager"
 		)
-public class Db1Config {
-	@Primary
+public class AddressDbConfig {
+	
 	@Bean
-	@ConfigurationProperties("spring.datasource.db1")
-	public DataSourceProperties db1DataSourceProperties() {
+	@ConfigurationProperties("spring.datasource.db2")
+	public DataSourceProperties db2DataSourceProperties() {
 		return new DataSourceProperties();
 	}
 	
-	@Primary
-	@Bean
-	@ConfigurationProperties("spring.datasource.db1.configuration")
-	public DataSource dataSource() {
-		return db1DataSourceProperties().initializeDataSourceBuilder().type(HikariDataSource.class).build();
+	@Bean("addressDataSource")
+	@ConfigurationProperties("spring.datasource.db2.configuration")
+	public DataSource addressDataSource() {
+		return db2DataSourceProperties().initializeDataSourceBuilder()
+				.type(HikariDataSource.class)
+				.build();
 	}
 	
-	@Primary
-	@Bean(name = "entityManagerFactory")
-	public LocalContainerEntityManagerFactoryBean entityManagerFactory(EntityManagerFactoryBuilder builder) {
+	@Bean(name = "addressEntityManagerFactory")
+	public LocalContainerEntityManagerFactoryBean entityManagerFactory(
+		EntityManagerFactoryBuilder builder	
+			) {
 		return builder
-				.dataSource(dataSource())
-				.packages(Student.class).build();
+				.dataSource(addressDataSource())
+				.packages(Address.class)
+				.build();
 	}
 	
-	@Primary
-	@Bean(name = "transactionManager")
+	@Bean(name = "addressTransactionManager")
 	public PlatformTransactionManager transactionManager(
-			final @Qualifier("entityManagerFactory") LocalContainerEntityManagerFactoryBean entityManagerFactoryBean) {
+		@Qualifier("entityManagerFactory") LocalContainerEntityManagerFactoryBean entityManagerFactoryBean 
+			) {
 		return new JpaTransactionManager(entityManagerFactoryBean.getObject());
 	}
+
 }
